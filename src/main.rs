@@ -10,10 +10,10 @@ mod tests;
 use rand::Rng; //导入外部的包... 记得修改toml文件
 
 
-use tests::is_sorted;
+
 use data_structures::heap::MinHeap;
 use sort::quicksort::Person;
-
+use crate::data_structures::bintree::BinNode;
 fn main() {
     // let mut rag = rand::thread_rng();
     // let mut heap = MinHeap::new();
@@ -45,6 +45,13 @@ fn main() {
     // // for i in &heap.payload { //引用, 不释放空间
     // //     println!("{:#?}",i.age);
     // // }
+    // let mut bt_node = crate::data_structures::bintree::BinNode::new(1, "string");
+    // println!("{:#?}",bt_node);
+
+    // bt_node.insert_binnode(2,"hello");
+    // println!("{:#?}",bt_node);
+    
+
 }
 
 
@@ -70,11 +77,14 @@ fn main() {
 
 #[test]
 fn test_sorting() {
-    is_sorted();
+    tests::is_sorted();
 }
 
 
-
+#[test]
+fn test_bintree() {
+    tests::test_bintree();
+}
 
 // #[bench]
 // pub fn bench_quicksort(b: &mut Bencher) {

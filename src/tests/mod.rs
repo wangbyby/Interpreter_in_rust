@@ -16,7 +16,12 @@ pub fn is_sorted() {
     assert!(crate::sort::is_sorted(&mut test_vec), true);
 }
 
+#[test] //二叉树
+pub fn test_bintree(){
 
+    let mut bt_node = crate::data_structures::bintree::BinNode::new(1, "string");
+    println!("{:#?}",bt_node);
+}
 
 
 #[test]
