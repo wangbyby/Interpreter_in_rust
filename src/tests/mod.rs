@@ -15,3 +15,45 @@ pub fn is_sorted() {
     crate::sort::quicksort::quicksort(&mut test_vec);
     assert!(crate::sort::is_sorted(&mut test_vec), true);
 }
+
+
+
+
+#[test]
+pub fn is_heaped(){
+    let mut rag = rand::thread_rng();
+    let mut heap = crate::data_structures::heap::MinHeap::new();
+    
+    for _j in 0..20 {
+        let tmp:u8 = rag.gen(); //产生随机数 
+        let person = crate::sort::quicksort::Person::new(tmp); //创建结构体
+        heap.push_tail(person);
+        
+    }  
+    let mut vvv = vec![];
+    for j in 0..20 {
+        
+        match heap.pop_head() {
+            Some(e) => vvv.push(e.age),
+            _ => println!("none"),
+        }
+    }
+    assert!(crate::sort::is_sorted(&mut vvv), true);
+}
+
+
+// #[bench]
+// pub fn bench_quicksort(b: &mut Bencher) {
+//     b.iter(||
+//         {
+//             use rand::Rng;
+//             let mut rng = rand::thread_rng();
+//             let mut test_vec = vec![];
+//             for _j in 0..20 {
+//                 let ele:i32 = rng.gen();
+//                 test_vec.push(ele);
+//             }
+//             crate::sort::quicksort::quicksort(&mut test_vec);
+//         }
+//     )
+// }

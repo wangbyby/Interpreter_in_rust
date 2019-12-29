@@ -1,11 +1,13 @@
 
-use rand::Rng; //导入外部的包... 记得修改toml文件
-
+// #![feature(test)]
+// extern crate test;
+// use test::Bencher;
 
 mod sort;//在入口文件定义mod
 mod data_structures;
 mod tests;
 
+use rand::Rng; //导入外部的包... 记得修改toml文件
 
 
 use tests::is_sorted;
@@ -46,27 +48,46 @@ fn main() {
 }
 
 
-#[test]
-fn test_heap(){
-    let mut rag = rand::thread_rng();
-    let mut heap = MinHeap::new();
+// #[test]
+// fn test_heap(){
+//     let mut rag = rand::thread_rng();
+//     let mut heap = MinHeap::new();
     
-    for _j in 0..20 {
-        let tmp:u8 = rag.gen(); //产生随机数 
-        let person = Person::new(tmp); //创建结构体
-        heap.push_tail(person);
+//     for _j in 0..20 {
+//         let tmp:u8 = rag.gen(); //产生随机数 
+//         let person = Person::new(tmp); //创建结构体
+//         heap.push_tail(person);
         
-    }  
-    for j in 0..20 {
+//     }  
+//     for j in 0..20 {
         
-        match heap.pop_head() {
-            Some(e) => println!("element.age = {:?}",e.age),
-            _ => println!("none"),
-        }
-    }
-}
+//         match heap.pop_head() {
+//             Some(e) => println!("element.age = {:?}",e.age),
+//             _ => println!("none"),
+//         }
+//     }
+// }
 
 #[test]
 fn test_sorting() {
     is_sorted();
 }
+
+
+
+
+// #[bench]
+// pub fn bench_quicksort(b: &mut Bencher) {
+//     b.iter(||
+//         {
+//             use rand::Rng;
+//             let mut rng = rand::thread_rng();
+//             let mut test_vec = vec![];
+//             for _j in 0..20 {
+//                 let ele:i32 = rng.gen();
+//                 test_vec.push(ele);
+//             }
+//             crate::sort::quicksort::quicksort(&mut test_vec);
+//         }
+//     )
+// }
