@@ -19,8 +19,6 @@ pub fn is_sorted() {
 #[test] //二叉树
 pub fn test_bintree(){
 
-    let mut bt_node = crate::data_structures::bintree::BinNode::new(1, "string");
-    println!("{:#?}",bt_node);
 }
 
 
@@ -47,18 +45,19 @@ pub fn is_heaped(){
 }
 
 
-// #[bench]
-// pub fn bench_quicksort(b: &mut Bencher) {
-//     b.iter(||
-//         {
-//             use rand::Rng;
-//             let mut rng = rand::thread_rng();
-//             let mut test_vec = vec![];
-//             for _j in 0..20 {
-//                 let ele:i32 = rng.gen();
-//                 test_vec.push(ele);
-//             }
-//             crate::sort::quicksort::quicksort(&mut test_vec);
-//         }
-//     )
-// }
+//测试list
+#[test]
+pub fn test_list(){
+    let mut list = crate::data_structures::list::ListNode::new(0);
+    for i in 0..10{
+
+        list.push(i);
+    }
+    
+    for i in 0..10{
+        list.pop();
+    }
+    let e = list.pop();
+    assert_eq!(e,None);
+    println!("{:#?}",list);
+}
