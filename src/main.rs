@@ -10,6 +10,9 @@ use rand::Rng; //导入外部的包... 记得修改toml文件
 use data_structures::heap::MinHeap;
 use sort::quicksort::Person;
 use crate::data_structures::bintree::BinNode;
+
+
+
 fn main() {
     let mut rag = rand::thread_rng();
     // let mut heap = MinHeap::new();
@@ -47,17 +50,23 @@ fn main() {
     // bt_node.insert_binnode(2,"hello");
     // println!("{:#?}",bt_node);
     
-    let mut tree = data_structures::bintree::BinNode::new(1u8, 20);
-    // tree.insert_nonrecursive(20, "world");
-    for i in 0..10 {
-        let tmp:u8 = rag.gen(); //产生随机数
-        tree.insert_nonrecursive(tmp, 10);
+    // let mut tree = data_structures::bintree::BinNode::new(1u8, 20);
+    // // tree.insert_nonrecursive(20, "world");
+    // for i in 0..10 {
+    //     let tmp:u8 = rag.gen(); //产生随机数
+    //     tree.insert_nonrecursive(tmp, 10);
 
-    }
-    tree.dfs();
-    tree.bfs();
-    println!("{:?}", tree);
-
+    // }
+    // tree.dfs();
+    // tree.bfs();
+    // println!("{:#?}", tree);
+    let b : bool = true;
+    let c :i8 = match b {
+        true =>1,
+        false =>0,
+    
+    };
+    println!("c={}",c);
 }
 
 

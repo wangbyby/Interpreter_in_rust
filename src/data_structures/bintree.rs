@@ -65,6 +65,7 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
 
     }
 
+    //仅仅是打印
     fn visit_node(&self) {
         println!("key = {:#?}",self.key);
     }
@@ -107,7 +108,7 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
         let mut stack = vec![];
         stack.push(self);
         
-        while let Some(mut node) = stack.pop() {
+        while let Some(node) = stack.pop() {
         
             node.visit_node();
             if let Some(ref mut l) = node.left{
@@ -123,7 +124,7 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
     pub fn bfs(&mut self) {
         let mut queue = VecDeque::new(); //标准库的容器
         queue.push_back(self);
-        while let Some(mut node) = queue.pop_front() {
+        while let Some(node) = queue.pop_front() {
             node.visit_node();
             if let Some(ref mut l) = node.left{
                 queue.push_back(l);
