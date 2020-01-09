@@ -120,6 +120,9 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
             
         }
     }
+
+    
+
     //BFS - nonrecur
     pub fn bfs(&mut self) {
         let mut queue = VecDeque::new(); //标准库的容器

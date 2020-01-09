@@ -1,5 +1,6 @@
 
 use rand::Rng;
+use crate::data_structures;
 
 #[test]
 //测试排序的
@@ -25,7 +26,7 @@ pub fn test_bintree(){
 #[test]
 pub fn is_heaped(){
     let mut rag = rand::thread_rng();
-    let mut heap = crate::data_structures::heap::MinHeap::new();
+    let mut heap = data_structures::heap::MinHeap::new();
     
     for _j in 0..20 {
         let tmp:u8 = rag.gen(); //产生随机数 
@@ -48,7 +49,7 @@ pub fn is_heaped(){
 //测试list
 #[test]
 pub fn test_list(){
-    let mut list = crate::data_structures::list::ListNode::new(0);
+    let mut list = data_structures::list::ListNode::new(0);
     for i in 0..10{
 
         list.push(i);
@@ -60,4 +61,15 @@ pub fn test_list(){
     let e = list.pop();
     assert_eq!(e,None);
     println!("{:#?}",list);
+}
+
+
+
+#[test]
+pub fn test_trie(){
+    let mut trie = data_structures::trie::Trie::new();
+    let mut s = String::from("hello");
+    trie.set(s,10);
+    trie.set("world",20);
+    // println!("{:#?}",trie);
 }

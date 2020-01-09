@@ -31,24 +31,35 @@ impl<T:std::cmp::PartialOrd> PartialEq for Person<T> {
 --排序的Vec<T>中的T
 --跟Person<T>的T 之间不一样
 */
-pub fn quicksort<T>( arr : &mut Vec<T>)where T:std::cmp::PartialOrd {
+pub fn quicksort<T>( arr : &mut [T])where T:std::cmp::PartialOrd {
     quick_sorted(arr,0,arr.len()-1);
 }
-fn quick_sorted<T>( arr:&mut Vec<T>, a:usize,b : usize)where T:std::cmp::PartialOrd {
-    if a<b {
-        if b-a < 20 {
-            insert_sorted(arr,a,b);
-        }else{
+fn quick_sorted<T>( arr:&mut [T], a:usize,b : usize)where T:std::cmp::PartialOrd {
+    match b-a {
+        1 ... 19 => insert_sorted(arr,a,b),
+        0 => {},
+        _ => {
             let p = partion(arr,a,b);
             if p !=0 {
                 quick_sorted(arr,a,p-1); //无符号整数...越界
             }
             quick_sorted(arr,p+1,b);
-        }
+        },
     }
+    // if a<b {
+    //     if b-a < 20 {
+    //         insert_sorted(arr,a,b);
+    //     }else{
+    //         let p = partion(arr,a,b);
+    //         if p !=0 {
+    //             quick_sorted(arr,a,p-1); //无符号整数...越界
+    //         }
+    //         quick_sorted(arr,p+1,b);
+    //     }
+    // }
 }
 //注意A的写法... vec下标为 usize, 容易越界, 不过发现更多的小错误...
-fn partion<T>( arr :&mut Vec<T>, p:usize,r:usize)->usize  where T:std::cmp::PartialOrd { 
+fn partion<T>( arr :&mut [T], p:usize,r:usize)->usize  where T:std::cmp::PartialOrd { 
     let mut i = p;
     for j in p..r {
         if arr[j] < arr[r] { //比较T需要加std::cmp::PartialOrd
@@ -61,7 +72,7 @@ fn partion<T>( arr :&mut Vec<T>, p:usize,r:usize)->usize  where T:std::cmp::Part
 }
 
 //插入排序
-fn insert_sorted<T>( arr :&mut Vec<T>,l:usize,r:usize) where T:std::cmp::PartialOrd {
+fn insert_sorted<T>( arr :&mut [T],l:usize,r:usize) where T:std::cmp::PartialOrd {
     let mut i:usize;
     for j in l+1..r+1 {
         i = j;

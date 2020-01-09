@@ -1,7 +1,7 @@
 pub mod quicksort; //定义子包, 以文件名为包名
 
 
-pub fn is_sorted<T>( arr :&mut Vec<T>) -> bool
+pub fn is_sorted<T>( arr :&mut [T]) -> bool
     where T:std::cmp::PartialOrd 
 {
     if arr.len() <2 {
