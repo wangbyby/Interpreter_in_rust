@@ -1,14 +1,14 @@
 
 use std::collections::HashMap;
 //图 邻接矩阵表示
-pub struct Graph<T> where T: std::marker::Copy{
+pub struct Graph<T> where T: std::marker::Copy + std::cmp::PartialEq{
     payload : Vec<Vec<T>>,
     pub n_v : usize,
     pub n_e: usize,
     default_value: T,
 }
 
-impl<T> Graph<T> T: std::marker::Copy{
+impl<T> Graph<T> where T: std::marker::Copy + std::cmp::PartialEq {
     pub fn with_default_value(default_val: T, capacity: usize) -> Self {
         Graph { payload: vec![vec![default_val; capacity]; capacity], 
             n_e: 0, 
@@ -30,8 +30,8 @@ impl<T> Graph<T> T: std::marker::Copy{
         self.payload[a].clone()
         //self.payload[a].iter().filter(|&x| *x!=default_value).collect::<Vec<_>>()
     }
-    pub fn child_nodes_hashmap(&mut self, a: usize) -> HashMap<usize,T> {
-        self.payload[a].clone().iter().enumerate().filter(|&(x,y)| *y!=self.default_value).collect::<HashMap<_,_>>()
+    pub fn child_nodes_hashmap(&mut self, a: usize) -> HashMap<usize, T> {
+        self.payload[a].clone().iter().enumerate().filter(|&(x,y)| *y!=self.default_value).map(|(x,y)| (x,*y)).collect::<HashMap<_,_>>()
     }
     // //返回最小生成树
     // pub fn prim(&mut self) -> Vec<usize> {

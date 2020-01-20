@@ -1,9 +1,72 @@
-
-
 use std::collections::VecDeque;
+
+
+//预计写语法树
+//终结符, 非终结符, None
+#[derive(Debug, Copy, Clone)]
+pub enum Gkey {
+    op(char), //非终结符
+    num(i64), //终结符
+}
+type Num = i64;
+
+fn compute(k: Gkey, a:Option<Num>  , b: Option<Num>) -> Option<Num> {
+    match (k,a,b) {
+        (Gkey::op(operator), Some(aa),Some(bb)) => {
+            match operator {
+                '+' => Some(aa + bb),
+                '-' => Some(aa - bb),
+                '*' => Some(aa * bb),
+                '/' => Some(aa / bb),
+                '%' => Some(aa % bb),
+                _=> None,
+            }
+        },
+        _=> None,
+    }
+}
+type GNodeOptions<V> = Option<Box<GNode<V>>>;
+
+#[derive(Debug)]
+pub struct GNode<V> {
+    pub left : GNodeOptions<V>,
+    pub right : GNodeOptions<V>,
+    pub key : Gkey ,
+    pub value : V,
+}
+impl<V> GNode<V> {
+    pub fn new(k : Gkey,val : V)->Self {
+        GNode {
+            left:None,
+            right:None,
+            key: k,
+            value:val,
+        }
+    }
+    //在后序遍历的基础上,计算
+    pub fn judge(&mut self) -> Option<Num>{
+        match self.key {
+            Gkey::op(c) => {
+                match (self.left.as_mut(), self.right.as_mut()) {
+                    (Some(ref mut l), Some(ref mut r)) => {
+                        compute(self.key, l.judge(), r.judge())
+                    }
+                    _=> None,
+                }
+            },
+            Gkey::num(num)=> Some(num),
+            _=> None,
+        }
+    }
+
+    
+}
+
+
 type BinNodeEnum<K,V> = Option<Box<BinNode<K,V>>>;
+
 #[derive(Debug)]//二叉树
-pub struct BinNode<K,V> where K: std::cmp::PartialOrd+ std::fmt::Debug{ //节点
+pub struct BinNode<K,V>  where K:std::cmp::PartialOrd + std::fmt::Debug { //节点
     left : BinNodeEnum<K,V>,
     right : BinNodeEnum<K,V>,
     pub key : K,
@@ -11,7 +74,7 @@ pub struct BinNode<K,V> where K: std::cmp::PartialOrd+ std::fmt::Debug{ //节点
 }
 
 
-impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
+impl<K,V> BinNode<K,V>  where K:std::cmp::PartialOrd + std::fmt::Debug {
     pub fn new(key1: K, value1: V) -> BinNode<K,V> {
         BinNode{
             left:None,
@@ -62,7 +125,6 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
                 },
             }
         }
-
     }
 
     //仅仅是打印
@@ -103,6 +165,7 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
         self.visit_node();
     }
 
+    
     //DFS-nonrecur
     pub fn dfs(&mut self){
         let mut stack = vec![];
@@ -120,9 +183,6 @@ impl<K,V> BinNode<K,V> where K:std::cmp::PartialOrd + std::fmt::Debug {
             
         }
     }
-
-    
-
     //BFS - nonrecur
     pub fn bfs(&mut self) {
         let mut queue = VecDeque::new(); //标准库的容器

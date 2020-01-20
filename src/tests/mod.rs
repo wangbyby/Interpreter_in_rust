@@ -1,6 +1,8 @@
 
 use rand::Rng;
 use crate::data_structures;
+use crate::data_structures::bintree::GNode;
+use crate::data_structures::bintree::Gkey;
 
 #[test]
 //测试排序的
@@ -19,9 +21,27 @@ pub fn is_sorted() {
 
 #[test] //二叉树
 pub fn test_bintree(){
-
+    
 }
 
+pub fn bintree(){
+    let a = GNode::new(Gkey::num(20), 0);
+    let b = GNode::new(Gkey::num(10), 0);
+    let mut c = GNode::new(Gkey::op('+'), 0);
+    c.left = Some(Box::new(a));
+    c.right = Some(Box::new(b));
+
+    let aa = GNode::new(Gkey::num(20), 0);
+    let bb = GNode::new(Gkey::num(10), 0);
+    let mut cc = GNode::new(Gkey::op('-'), 0);
+    cc.left = Some(Box::new(aa));
+    cc.right = Some(Box::new(bb));
+
+    let mut ccc = GNode::new(Gkey::op('+'), 0);
+    ccc.right = Some(Box::new(cc));
+    ccc.left = Some(Box::new(c));
+    println!("{:#?}",ccc.judge());
+}
 
 #[test]
 pub fn is_heaped(){
@@ -63,13 +83,3 @@ pub fn test_list(){
     println!("{:#?}",list);
 }
 
-
-
-#[test]
-pub fn test_trie(){
-    let mut trie = data_structures::trie::Trie::new();
-    let mut s = String::from("hello");
-    trie.set(s,10);
-    trie.set("world",20);
-    // println!("{:#?}",trie);
-}

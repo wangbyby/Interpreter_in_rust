@@ -13,14 +13,8 @@ use data_structures::bintree::BinNode;
 use data_structures::trie;
 
 
-
-
-
-
-#[test]
-fn test_trie(){
-    tests::test_trie();
-    
+fn main(){
+    tests::bintree();
 }
 
 #[test]
