@@ -1,5 +1,5 @@
 [package]
-name = "rplay"
+name = "monkey"
 version = "0.1.0"
 authors = ["wangbyby <42870190+wangbyby@users.noreply.github.com>"]
 edition = "2018"
