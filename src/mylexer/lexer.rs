@@ -154,7 +154,7 @@ impl Lexer {
     }
 }
 
-//辅助函数
+
 fn is_letter(ch: char) -> bool {
     match ch {
         'a'..='z' | 'A'..='Z' | '_' => true,
