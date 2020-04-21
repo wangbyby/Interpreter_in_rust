@@ -1,7 +1,14 @@
+
 use super::token;
+use super::token::FILLER;
 use std::iter::Peekable;
 use std::str::Chars;
 
+macro_rules! make_token {
+    ($literal:expr, $type:ident) => {
+        (format!("{}", $literal), token::TokenType::$type)
+    };
+}
 
 const CHAR0: char = 0 as char;
 
@@ -59,11 +66,6 @@ fn dfa_number_ident(s:& DFAState, ch: Option<char>) -> Option<DFAState> {
     
 }
 
-macro_rules! make_token {
-    ($literal:expr, $type:ident) => {
-        (format!("{}", $literal), token::$type)
-    };
-}
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -82,23 +84,22 @@ impl<'a> Lexer<'a> {
             '=' => {
                 if self.peek_char().unwrap_or(CHAR0) == '=' {
                     self.next_char();
-                    make_token!("==", EQ)
+                    make_token!(FILLER, EQ)
                 } else {
-                    make_token!("=", ASSIGN)
+                    make_token!(FILLER, ASSIGN)
                 }
             },
-            '.'=> make_token!(".", DOT),
-            ';'=> make_token!(";",SEMICOLON),
-            // TODO:
+            '.'=> make_token!(FILLER, DOT),
+            ';'=> make_token!(FILLER,SEMICOLON),
+            // TODO
             _ => self.dfa(ch),
         })
     }
 
     fn dfa(&mut self,  ch: char)->token::Token{
         use DFAState::*;
-
         let mut state = START;
-        let mut string1 = ch.to_string();
+        let mut dfa_string = ch.to_string();
         state = dfa_number_ident(&state, Some(ch)).unwrap_or(Error);
         while let Some(s) = dfa_number_ident(&state,self.peek_char()) {
             
@@ -106,17 +107,17 @@ impl<'a> Lexer<'a> {
             if state > ACC {
                 break;
             }
-            self.next_char().map(|ch| string1.push(ch));
+            self.next_char().map(|ch| dfa_string.push(ch));
             
         }
 
         match state {
-            IDENTACC=>token::lookup_keyword(&string1),
-            OCTACC=> (string1, token::OCT),
-            HEXACC=> (string1, token::HEX),
-            DECINTACC=> (string1, token::DECINT),
-            DECFLOATACC=> (string1, token::DECFLOAT),
-            _=> (string1, token::ILLEGAL),
+            IDENTACC=>token::lookup_keyword(&dfa_string),
+            OCTACC=> (dfa_string, token::TokenType::OCT),
+            HEXACC=> (dfa_string, token::TokenType::HEX),
+            DECINTACC=> (dfa_string, token::TokenType::DECINT),
+            DECFLOATACC=> (dfa_string, token::TokenType::DECFLOAT),
+            _=> (dfa_string, token::TokenType::ILLEGAL),
         }
         
         
@@ -162,8 +163,8 @@ mod tests {
         let s = " int a102a;";
         let mut l = Lexer::new(s);
 
-        assert_eq!(l.next_token(),Some(("int".to_string(), token::IDENT)));
-        assert_eq!(l.next_token(),Some(("a102a".to_string(), token::IDENT)));
+        assert_eq!(l.next_token(),Some(("int".to_string(), token::TokenType::IDENT)));
+        assert_eq!(l.next_token(),Some(("a102a".to_string(), token::TokenType::IDENT)));
         
     }
 
@@ -171,9 +172,9 @@ mod tests {
     fn test_number(){
         let s = "1234.0981  1234 0.1298;";
         let mut l = Lexer::new(s);
-        assert_eq!(l.next_token(),Some(("1234.0981".to_string(), token::DECFLOAT)));
-        assert_eq!(l.next_token(),Some(("1234".to_string(), token::DECINT)));
-        assert_eq!(l.next_token(),Some(("0.1298".to_string(), token::DECFLOAT)));
-        assert_eq!(l.next_token(),Some((";".to_string(), token::SEMICOLON)));
+        assert_eq!(l.next_token(),Some(("1234.0981".to_string(), token::TokenType::DECFLOAT)));
+        assert_eq!(l.next_token(),Some(("1234".to_string(), token::TokenType::DECINT)));
+        assert_eq!(l.next_token(),Some(("0.1298".to_string(), token::TokenType::DECFLOAT)));
+        assert_eq!(l.next_token(),Some(("".to_string(), token::TokenType::SEMICOLON)));
     }
 }
