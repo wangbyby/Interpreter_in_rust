@@ -2,4 +2,4 @@
 
 ## 改进
 - ``clone``太多了
-- lex可以用rust内置的iter代替字符串取下标
+- lex可以用rust内置的`Peekable<Chars<'a>>`代替字符串取下标
