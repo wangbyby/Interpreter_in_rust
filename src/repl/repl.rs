@@ -18,8 +18,8 @@ pub fn start() {
         io::stdout().flush().unwrap();
 
         io::stdin().read_line(&mut scanned).unwrap();
-        
-        let  lexer = Lexer::new(scanned.clone());
+
+        let mut lexer = Lexer::new(scanned);
         let mut p = parser::Parser::new(lexer);
         let  program = p.parse_program();
 
