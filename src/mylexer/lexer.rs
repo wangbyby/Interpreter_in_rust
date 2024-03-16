@@ -1,8 +1,10 @@
 use crate::token::token;
 
+use std::{iter::Iterator, thread::sleep};
+
 const CHAR0: char = 0 as char;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Lexer {
     input: String,
     position: usize,
@@ -45,7 +47,7 @@ impl Lexer {
                 } else {
                     tok = token::Token::new(token::ASSIGN, self.ch)
                 }
-            },
+            }
             '!' => {
                 if self.peek_char() == '=' {
                     let ch = self.ch;
@@ -58,7 +60,7 @@ impl Lexer {
                 } else {
                     tok = token::Token::new(token::BANG, self.ch)
                 }
-            },
+            }
             '(' => tok = token::Token::new(token::LPAREN, self.ch),
             ')' => tok = token::Token::new(token::RPAREN, self.ch),
             '{' => tok = token::Token::new(token::LBRACE, self.ch),
@@ -71,10 +73,10 @@ impl Lexer {
             '>' => tok = token::Token::new(token::GT, self.ch),
             ',' => tok = token::Token::new(token::COMMA, self.ch),
             ';' => tok = token::Token::new(token::SEMICOLON, self.ch),
-            '"'=>  tok = token::Token::new_with_string(token::STRING,self.read_string()),
+            '"' => tok = token::Token::new_with_string(token::STRING, self.read_string()),
             '[' => tok = token::Token::new(token::LBRACKET, self.ch),
             ']' => tok = token::Token::new(token::RBRACKET, self.ch),
-            ':'=> tok = token::Token::new(token::COLON,self.ch),
+            ':' => tok = token::Token::new(token::COLON, self.ch),
             CHAR0 => tok = token::Token::new(token::EOF, CHAR0),
             _ => {
                 if is_letter(self.ch) {
@@ -121,11 +123,11 @@ impl Lexer {
             }
         }
     }
-    fn read_string(&mut self)->String{
-        let position = self.position+1;
-        loop{
+    fn read_string(&mut self) -> String {
+        let position = self.position + 1;
+        loop {
             self.read_char();
-            if self.ch == '"'{
+            if self.ch == '"' {
                 break;
             }
         }
@@ -141,7 +143,7 @@ impl Lexer {
         while is_digit(self.ch) {
             self.read_char();
         }
-        
+
         unsafe {
             self.input
                 .get_unchecked(position..self.position)
@@ -154,6 +156,12 @@ impl Lexer {
     }
 }
 
+impl Iterator for Lexer {
+    type Item = token::Token;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.next_token())
+    }
+}
 
 fn is_letter(ch: char) -> bool {
     match ch {
@@ -166,6 +174,6 @@ fn is_digit(ch: char) -> bool {
     '0' <= ch && ch <= '9'
 }
 
-fn is_var_name(ch: char)-> bool {
+fn is_var_name(ch: char) -> bool {
     is_letter(ch) || is_digit(ch)
 }
