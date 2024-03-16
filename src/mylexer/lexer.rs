@@ -1,6 +1,6 @@
 use crate::token::token;
 
-use std::{iter::Iterator, thread::sleep};
+use std::iter::Iterator;
 
 const CHAR0: char = 0 as char;
 
