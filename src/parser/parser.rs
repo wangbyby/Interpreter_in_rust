@@ -1,9 +1,7 @@
 use crate::ast::ast;
 use crate::ast::ast::ASTNode;
 use crate::mylexer::lexer;
-use crate::token;
 use crate::token::token::{Token, TokenType, TokenType::*};
-use std::cell::OnceCell;
 use std::collections::HashMap;
 use std::iter::Peekable;
 
@@ -85,13 +83,13 @@ impl<'a> Parser<'a> {
     fn parse_identifier(this: &mut Parser) -> Box<ast::ASTNode> {
         Box::new(ASTNode::Identifier(ast::Identifier {
             token: this.cur_token.clone(),
-            value: this.cur_token.Literal.clone(),
+            value: this.cur_token.literal.clone(),
         }))
     }
 
     fn parse_integer_literal(this: &mut Parser) -> Box<ast::ASTNode> {
         let mut lit = ast::IntegerLiteral::new(this.cur_token.clone());
-        lit.value = match this.cur_token.Literal.parse::<i64>() {
+        lit.value = match this.cur_token.literal.parse::<i64>() {
             Ok(v) => v,
             Err(e) => {
                 this.errors.push(e.to_string());
@@ -102,7 +100,7 @@ impl<'a> Parser<'a> {
     }
     fn parse_prefix_expression(this: &mut Parser) -> Box<ast::ASTNode> {
         let mut expression =
-            ast::PrefixExpression::new(this.cur_token.clone(), this.cur_token.Literal.clone());
+            ast::PrefixExpression::new(this.cur_token.clone(), this.cur_token.literal.clone());
 
         this.next_token();
 
@@ -112,7 +110,7 @@ impl<'a> Parser<'a> {
     }
     fn parse_infix_expression(this: &mut Parser, left: Box<ast::ASTNode>) -> Box<ast::ASTNode> {
         let mut expression =
-            ast::InfixExpression::new(this.cur_token.clone(), this.cur_token.Literal.clone());
+            ast::InfixExpression::new(this.cur_token.clone(), this.cur_token.literal.clone());
         expression.left = left;
         let p = this.cur_precedence();
         this.next_token();
@@ -190,7 +188,7 @@ impl<'a> Parser<'a> {
     fn parse_string_literal(this: &mut Parser) -> Box<ast::ASTNode> {
         Box::new(ast::ASTNode::StringLiteral(
             this.cur_token.clone(),
-            this.cur_token.Literal.clone(),
+            this.cur_token.literal.clone(),
         ))
     }
 
@@ -283,7 +281,7 @@ impl<'a> Parser<'a> {
     pub fn new(l: lexer::Lexer) -> Parser {
         let mut p = Parser {
             l: l.peekable(),
-            cur_token: Token:: default(),
+            cur_token: Token::default(),
             peek_token: Token::default(),
             errors: vec![],
             prefix_parser_fns: HashMap::new(),
@@ -346,7 +344,7 @@ impl<'a> Parser<'a> {
     pub fn parse_program(&mut self) -> Box<ast::ASTNode> {
         let mut program = ast::Program::new();
 
-        while self.cur_token.Type != EOF {
+        while self.cur_token.ty != EOF {
             if let Some(stmt) = self.parse_statement() {
                 program.statements.push(stmt);
             }
@@ -358,15 +356,15 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_statement(&mut self) -> Option<Box<ast::ASTNode>> {
-        Some(match self.cur_token.Type {
-            LET => {
+        Some(match self.cur_token.ty {
+            Let => {
                 if let Some(letstmt) = self.parse_letstatement() {
                     Box::new(ASTNode::LetStatement(*letstmt))
                 } else {
                     ASTNode_None!()
                 }
             }
-            RETURN => {
+            Return => {
                 if let Some(stmt) = self.parse_returnstatement() {
                     Box::new(ASTNode::ReturnStatement(*stmt))
                 } else {
@@ -388,10 +386,14 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, precedence: u8) -> Box<ast::ASTNode> {
-        if let Some(prefix) = self.prefix_parser_fns.get_mut(&self.cur_token.Type) {
+        if let Some(prefix) = self.prefix_parser_fns.get_mut(&self.cur_token.ty) {
             let mut left_expr = prefix(self);
             while !self.peek_token_is(SEMICOLON) && precedence < self.peek_precedence() {
-                if let Some(infix) = self.infix_parser_fns.get_mut(&self.peek_token.Type).cloned() {
+                if let Some(infix) = self
+                    .infix_parser_fns
+                    .get_mut(&self.peek_token.ty)
+                    .cloned()
+                {
                     //找了一天的错,干...
                     self.next_token();
                     left_expr = infix(self, left_expr);
@@ -401,7 +403,7 @@ impl<'a> Parser<'a> {
             }
             return left_expr;
         } else {
-            self.no_prefix_parse_error(self.cur_token.Type);
+            self.no_prefix_parse_error(self.cur_token.ty);
             return ASTNode_None!();
         }
     }
@@ -455,7 +457,7 @@ impl<'a> Parser<'a> {
         }
         self.next_token();
 
-        let ident = ast::Identifier::new(self.cur_token.clone(), self.cur_token.Literal.clone());
+        let ident = ast::Identifier::new(self.cur_token.clone(), self.cur_token.literal.clone());
 
         ids.push(Some(Box::new(ident)));
 
@@ -464,7 +466,7 @@ impl<'a> Parser<'a> {
             self.next_token();
 
             let ident =
-                ast::Identifier::new(self.cur_token.clone(), self.cur_token.Literal.clone());
+                ast::Identifier::new(self.cur_token.clone(), self.cur_token.literal.clone());
             ids.push(Some(Box::new(ident)));
         }
 
@@ -498,7 +500,7 @@ impl<'a> Parser<'a> {
         }
         stmt.name = Box::new(ast::Identifier {
             token: self.cur_token.clone(),
-            value: self.cur_token.Literal.clone(),
+            value: self.cur_token.literal.clone(),
         });
 
         if !self.expect_peek(ASSIGN) {
@@ -537,10 +539,10 @@ impl<'a> Parser<'a> {
     }
 
     fn cur_token_is(&self, t: TokenType) -> bool {
-        self.cur_token.Type == t
+        self.cur_token.ty == t
     }
     fn peek_token_is(&self, t: TokenType) -> bool {
-        self.peek_token.Type == t
+        self.peek_token.ty == t
     }
 
     fn expect_peek(&mut self, t: TokenType) -> bool {
@@ -560,15 +562,45 @@ impl<'a> Parser<'a> {
     fn peek_errors(&mut self, t: TokenType) {
         let msg = format!(
             "expected next token to {}, but got {}",
-            t, self.peek_token.Type
+            t, self.peek_token.ty
         );
         self.errors.push(msg);
     }
 
     fn peek_precedence(&mut self) -> u8 {
-        get_precedence(self.peek_token.Type)
+        get_precedence(self.peek_token.ty)
     }
     fn cur_precedence(&mut self) -> u8 {
-        get_precedence(self.cur_token.Type)
+        get_precedence(self.cur_token.ty)
+    }
+}
+
+#[cfg(test)]
+mod parser {
+    use crate::{
+        ast::ast::{ASTNode, Identifier, IntegerLiteral, LetStatement},
+        mylexer::lexer::{self, Lexer},
+        token::token::Token,
+    };
+
+    use super::Parser;
+
+    #[test]
+    fn test() {
+        let input = "let a = 10";
+        let l = Lexer::new(input);
+        let mut p = Parser::new(l);
+        let ast = p.parse_program();
+
+        let mut letstat = LetStatement::new();
+        let mut id = Identifier::default();
+        id.value = "a".to_string();
+        letstat.name = Box::new(id);
+
+        let mut num = IntegerLiteral::new(Token::default());
+        num.value = 10;
+        letstat.value = Box::new(crate::ast::ast::ASTNode::IntegerLiteral(num));
+
+        assert_eq!(*ast,  ASTNode::LetStatement(letstat ) );
     }
 }
