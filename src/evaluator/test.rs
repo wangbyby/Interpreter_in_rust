@@ -7,9 +7,9 @@ use crate::object::object;
 use crate::parser::parser;
 use crate::mylexer::lexer;
 
-fn test_eval<S: Into<String>>(input: S) ->Box<object::TheObject>{
+fn test_eval<S: AsRef<str>>(input: S) ->Box<object::TheObject>{
     let mut env = evaluator::Environment::new();
-    let l = lexer::Lexer::new(input.into());
+    let l = lexer::Lexer::new(input.as_ref());
     let mut p = parser::Parser::new(l);
     let program = p.parse_program();
     eval(&program, &mut env)
