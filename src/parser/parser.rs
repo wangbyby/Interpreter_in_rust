@@ -55,9 +55,8 @@ macro_rules! ASTNode_None {
 type PrefixParserFn= fn(&mut Parser)->Box<ast::ASTNode>;
 type InfixParserFn = fn(&mut Parser, Box<ast::ASTNode>)->Box<ast::ASTNode>;
 
-#[derive(Clone)]
-pub struct Parser{
-    l: lexer::Lexer,
+pub struct Parser<'a>{
+    l: lexer::Lexer<'a>,
     cur_token: token::Token,
     peek_token: token::Token,
     pub errors: Vec<String>,
@@ -69,7 +68,7 @@ pub struct Parser{
 
 
 
-impl Parser{
+impl<'a> Parser<'a>{
     
     fn parse_identifier(this:&mut Parser)-> Box<ast::ASTNode>{
         Box::new(
@@ -313,8 +312,8 @@ impl Parser{
     
     
     fn next_token(&mut self) {
-        self.cur_token = self.peek_token.clone();
-        self.peek_token = self.l.next_token();
+        // self.cur_token = self.peek_token.clone();
+        // self.peek_token = self.l.next_token();
     }
 
 

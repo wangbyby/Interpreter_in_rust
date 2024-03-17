@@ -19,7 +19,7 @@ pub fn start() {
 
         io::stdin().read_line(&mut scanned).unwrap();
 
-        let mut lexer = Lexer::new(scanned);
+        let mut lexer = Lexer::new(&scanned);
         let mut p = parser::Parser::new(lexer);
         let  program = p.parse_program();
 
