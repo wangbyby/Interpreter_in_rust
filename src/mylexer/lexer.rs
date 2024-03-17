@@ -22,14 +22,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn next_char(&mut self) -> Option<char> {
-        (self.position, self.ch) = self.input.next()?;
-        Some(self.ch)
-    }
-    fn peek_char(&mut self) -> Option<char> {
-        self.input.peek().map(|(_, c)| *c)
-    }
-
     pub fn next_token(&mut self) -> Option<token::Token> {
         let mut tok: token::Token;
 
@@ -86,6 +78,14 @@ impl<'a> Lexer<'a> {
         Some(tok)
     }
 
+    fn next_char(&mut self) -> Option<char> {
+        (self.position, self.ch) = self.input.next()?;
+        Some(self.ch)
+    }
+    fn peek_char(&mut self) -> Option<char> {
+        self.input.peek().map(|(_, c)| *c)
+    }
+
     fn skip_whitespace(&mut self) {
         while let Some(ch) = self.peek_char() {
             match ch {
@@ -100,7 +100,7 @@ impl<'a> Lexer<'a> {
     fn read_<F: Fn(char) -> bool>(&mut self, first_char: Option<char>, ok_fn: F) -> String {
         let mut id = String::with_capacity(8);
         println!("here char={:?}", first_char);
-        if let Some(ch) =first_char  {
+        if let Some(ch) = first_char {
             id.write_char(ch).unwrap();
         }
         while let Some(n) = self.peek_char() {
@@ -152,10 +152,7 @@ fn is_var_name(ch: char) -> bool {
 
 #[cfg(test)]
 mod test_lexer {
-    use crate::token::{
-        self,
-        token::{Token, TokenType},
-    };
+    use crate::token::{self, token::Token};
 
     use super::Lexer;
 
