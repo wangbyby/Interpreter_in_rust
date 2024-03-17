@@ -1,4 +1,4 @@
-use crate::token::token;
+use crate::token::token::{lookup_ident, Token, TokenType::*};
 use std::fmt::Write;
 use std::iter::Iterator;
 use std::iter::Peekable;
@@ -22,8 +22,8 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn next_token(&mut self) -> Option<token::Token> {
-        let mut tok: token::Token;
+    pub fn next_token(&mut self) -> Option<Token> {
+        let mut tok: Token;
 
         self.skip_whitespace();
 
@@ -31,48 +31,48 @@ impl<'a> Lexer<'a> {
             '=' => {
                 if self.peek_char()? == '=' {
                     self.next_char();
-                    tok = token::Token::new_with_string(token::EQ, "==".to_string());
+                    tok = Token::new_with_string(EQ, "==".to_string());
                 } else {
-                    tok = token::Token::new(token::ASSIGN, self.ch)
+                    tok = Token::new(ASSIGN, self.ch)
                 }
             }
             '!' => {
                 if self.peek_char()? == '=' {
                     self.next_char();
-                    tok = token::Token::new_with_string(token::NOT_EQ, "!=".to_string());
+                    tok = Token::new_with_string(NotEQ, "!=".to_string());
                 } else {
-                    tok = token::Token::new(token::BANG, self.ch)
+                    tok = Token::new(BANG, self.ch)
                 }
             }
-            '(' => tok = token::Token::new(token::LPAREN, self.ch),
-            ')' => tok = token::Token::new(token::RPAREN, self.ch),
-            '{' => tok = token::Token::new(token::LBRACE, self.ch),
-            '}' => tok = token::Token::new(token::RBRACE, self.ch),
-            '+' => tok = token::Token::new(token::PLUS, self.ch),
-            '-' => tok = token::Token::new(token::MINUS, self.ch),
-            '*' => tok = token::Token::new(token::ASTERISK, self.ch),
-            '/' => tok = token::Token::new(token::SLASH, self.ch),
-            '<' => tok = token::Token::new(token::LT, self.ch),
-            '>' => tok = token::Token::new(token::GT, self.ch),
-            ',' => tok = token::Token::new(token::COMMA, self.ch),
-            ';' => tok = token::Token::new(token::SEMICOLON, self.ch),
-            '"' => tok = token::Token::new_with_string(token::STRING, self.read_string(None)),
-            '[' => tok = token::Token::new(token::LBRACKET, self.ch),
-            ']' => tok = token::Token::new(token::RBRACKET, self.ch),
-            ':' => tok = token::Token::new(token::COLON, self.ch),
+            '(' => tok = Token::new(LPAREN, self.ch),
+            ')' => tok = Token::new(RPAREN, self.ch),
+            '{' => tok = Token::new(LBRACE, self.ch),
+            '}' => tok = Token::new(RBRACE, self.ch),
+            '+' => tok = Token::new(PLUS, self.ch),
+            '-' => tok = Token::new(MINUS, self.ch),
+            '*' => tok = Token::new(ASTERISK, self.ch),
+            '/' => tok = Token::new(SLASH, self.ch),
+            '<' => tok = Token::new(LT, self.ch),
+            '>' => tok = Token::new(GT, self.ch),
+            ',' => tok = Token::new(COMMA, self.ch),
+            ';' => tok = Token::new(SEMICOLON, self.ch),
+            '"' => tok = Token::new_with_string(Str, self.read_string(None)),
+            '[' => tok = Token::new(LBRACKET, self.ch),
+            ']' => tok = Token::new(RBRACKET, self.ch),
+            ':' => tok = Token::new(COLON, self.ch),
             ch if is_letter(ch) => {
-                tok = token::Token::default();
+                tok = Token::default();
                 tok.Literal = self.read_identifier(Some(ch));
-                tok.Type = token::lookup_ident(&tok.Literal);
+                tok.Type = lookup_ident(&tok.Literal);
             }
             ch if is_digit(ch) => {
-                tok = token::Token::default();
-                tok.Type = token::INT;
+                tok = Token::default();
+                tok.Type = INT;
                 tok.Literal = self.read_number(Some(ch));
             }
-            CHAR0 => tok = token::Token::new(token::EOF, CHAR0),
+            CHAR0 => tok = Token::new(EOF, CHAR0),
             _ => {
-                tok = token::Token::new(token::ILLEGAL, self.ch);
+                tok = Token::new(ILLEGAL, self.ch);
             }
         }
         Some(tok)
@@ -129,7 +129,7 @@ impl<'a> Lexer<'a> {
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = token::Token;
+    type Item = Token;
     fn next(&mut self) -> Option<Self::Item> {
         self.next_token()
     }
@@ -152,33 +152,34 @@ fn is_var_name(ch: char) -> bool {
 
 #[cfg(test)]
 mod test_lexer {
-    use crate::token::{self, token::Token};
+    use crate::token::token::{Token, TokenType};
 
     use super::Lexer;
 
     #[test]
     fn test() {
+        use TokenType::*;
         let s = "let a = 10";
         let mut lexer = Lexer::new(s);
 
         let mut a = Token::default();
         a.Literal = "let".to_string();
-        a.Type = token::token::LET;
+        a.Type = Let;
         assert_eq!(Some(a), lexer.next_token());
 
         let mut a = Token::default();
         a.Literal = "a".to_string();
-        a.Type = token::token::IDENT;
+        a.Type = IDENT;
         assert_eq!(Some(a), lexer.next_token());
 
         let mut a = Token::default();
         a.Literal = "=".to_string();
-        a.Type = token::token::ASSIGN;
+        a.Type = ASSIGN;
         assert_eq!(Some(a), lexer.next_token());
 
         let mut a = Token::default();
         a.Literal = "10".to_string();
-        a.Type = token::token::INT;
+        a.Type = INT;
         assert_eq!(Some(a), lexer.next_token());
     }
 }
