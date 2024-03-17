@@ -1,4 +1,4 @@
-use crate::token::token;
+use crate::token::token::{self, Token};
 
 
 // use std::any::Any;
@@ -161,6 +161,14 @@ impl IntegerLiteral{
     }
 }
 
+impl Default for IntegerLiteral{
+    fn default() -> Self {
+        IntegerLiteral{
+            token: Token::default(),
+            value: 0,
+        }
+    }
+}
 
 
 #[derive(Debug,PartialEq,Clone,Eq,Hash)]

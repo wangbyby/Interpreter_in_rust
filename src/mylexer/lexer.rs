@@ -31,7 +31,7 @@ impl<'a> Lexer<'a> {
             '=' => {
                 if self.peek_char()? == '=' {
                     self.next_char();
-                    tok = Token::new_with_string(EQ, "==".to_string());
+                    tok = Token::new(EQ, "==");
                 } else {
                     tok = Token::new(ASSIGN, self.ch)
                 }
@@ -39,7 +39,7 @@ impl<'a> Lexer<'a> {
             '!' => {
                 if self.peek_char()? == '=' {
                     self.next_char();
-                    tok = Token::new_with_string(NotEQ, "!=".to_string());
+                    tok = Token::new(NotEQ, "!=");
                 } else {
                     tok = Token::new(BANG, self.ch)
                 }
@@ -56,19 +56,16 @@ impl<'a> Lexer<'a> {
             '>' => tok = Token::new(GT, self.ch),
             ',' => tok = Token::new(COMMA, self.ch),
             ';' => tok = Token::new(SEMICOLON, self.ch),
-            '"' => tok = Token::new_with_string(Str, self.read_string(None)),
+            '"' => tok = Token::new(Str, self.read_string(None)),
             '[' => tok = Token::new(LBRACKET, self.ch),
             ']' => tok = Token::new(RBRACKET, self.ch),
             ':' => tok = Token::new(COLON, self.ch),
             ch if is_letter(ch) => {
-                tok = Token::default();
-                tok.Literal = self.read_identifier(Some(ch));
-                tok.Type = lookup_ident(&tok.Literal);
+                let lit = self.read_identifier(Some(ch));
+                tok = Token::new(lookup_ident(&lit), lit);
             }
             ch if is_digit(ch) => {
-                tok = Token::default();
-                tok.Type = INT;
-                tok.Literal = self.read_number(Some(ch));
+                tok = Token::new(INT, self.read_number(Some(ch)));
             }
             CHAR0 => tok = Token::new(EOF, CHAR0),
             _ => {
@@ -162,24 +159,17 @@ mod test_lexer {
         let s = "let a = 10";
         let mut lexer = Lexer::new(s);
 
-        let mut a = Token::default();
-        a.Literal = "let".to_string();
-        a.Type = Let;
+        let mut a = Token::new(Let, "let");
         assert_eq!(Some(a), lexer.next_token());
 
-        let mut a = Token::default();
-        a.Literal = "a".to_string();
-        a.Type = IDENT;
+        let mut a = Token::new(IDENT, 'a');
         assert_eq!(Some(a), lexer.next_token());
 
-        let mut a = Token::default();
-        a.Literal = "=".to_string();
-        a.Type = ASSIGN;
+        let mut a = Token::new(ASSIGN, '=');
         assert_eq!(Some(a), lexer.next_token());
 
-        let mut a = Token::default();
-        a.Literal = "10".to_string();
-        a.Type = INT;
+        let mut a = Token::new(INT, "10");
+
         assert_eq!(Some(a), lexer.next_token());
     }
 }

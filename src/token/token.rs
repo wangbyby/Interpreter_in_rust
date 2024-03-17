@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Write};
 
 // pub const ILLEGAL: &'static str = "ILLEGAL";
 // pub const EOF: &'static str = "EOF";
@@ -143,21 +143,15 @@ impl Default for TokenType {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Token {
-    pub Type: TokenType,
-    pub Literal: String,
+    pub ty: TokenType,
+    pub literal: String,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, ch: char) -> Token {
+    pub fn new<S: Into<String>>(token_type: TokenType, ch: S) -> Token {
         Token {
-            Type: token_type,
-            Literal: ch.to_string(),
-        }
-    }
-    pub fn new_with_string<S: Into<String>>(token_type: TokenType, string: S) -> Token {
-        Token {
-            Type: token_type,
-            Literal: string.into(),
+            ty: token_type,
+            literal: ch.into(),
         }
     }
 }
@@ -165,8 +159,8 @@ impl Token {
 impl Default for Token {
     fn default() -> Self {
         Token {
-            Type: TokenType::default(),
-            Literal: String::new(),
+            ty: TokenType::default(),
+            literal: String::new(),
         }
     }
 }
