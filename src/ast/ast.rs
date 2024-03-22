@@ -51,12 +51,6 @@ impl ASTNode {
     }
 }
 
-// impl<T> Node for T where T: Node{
-//     fn as_super(&self) ->&dyn Node {
-//         self
-//     }
-// }
-
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct Program {
     pub statements: Vec<Box<ASTNode>>,
