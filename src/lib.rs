@@ -8,17 +8,31 @@ pub mod parser;
 pub mod repl;
 pub mod token;
 
-use std::io;
+use std::{error, io};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum FullError {
-    #[error("data store disconnected")]
-    Disconnect(#[from] io::Error),
-    #[error("the data for key `{0}` is not available")]
-    Redaction(String),
-    #[error("invalid header (expected {expected:?}, found {found:?})")]
-    InvalidHeader { expected: String, found: String },
+    #[error("parse int error")]
+    IntErr(#[from] std::num::ParseIntError),
+    #[error("parse group error")]
+    GroupErr,
+    #[error("parse if error")]
+    IfErr,
+    #[error("parse func error")]
+    FuncErr,
+    #[error("parse Index error")]
+    IndexErr,
+    #[error("parse Hash error")]
+    HashErr,
+    #[error("parse Assign error")]
+    AssignErr,
+    #[error("parse let error")]
+    LetErr,
+    #[error("parse return error")]
+    RetErr,
+    #[error("parse expr error")]
+    ExpressionErr,
     #[error("unknown data store error")]
     Unknown,
 }

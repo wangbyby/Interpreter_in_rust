@@ -11,7 +11,7 @@ fn test_eval<S: AsRef<str>>(input: S) ->Box<object::TheObject>{
     let mut env = evaluator::Environment::new();
     let l = lexer::Lexer::new(input.as_ref());
     let mut p = parser::Parser::new(l);
-    let program = Box::new(p.parse_program());
+    let program = Box::new(p.parse_program().unwrap());
     eval(&program, &mut env)
 }
 

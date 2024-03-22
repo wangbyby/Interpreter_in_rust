@@ -2,7 +2,9 @@ use crate::ast::ast;
 use crate::ast::ast::ASTNode;
 use crate::mylexer::lexer;
 use crate::token::token::{Token, TokenType, TokenType::*};
+use crate::Result;
 use std::collections::HashMap;
+use std::f32::consts::E;
 use std::iter::Peekable;
 
 #[repr(u8)]
@@ -46,12 +48,6 @@ fn get_precedence(t: TokenType) -> u8 {
     HASHMAP.get(&t).map(|t| *t).unwrap_or(get_pri!(LOWEST))
 }
 
-macro_rules! ASTNode_None {
-    () => {
-        Box::new(ASTNode::None)
-    };
-}
-
 pub struct Parser<'a> {
     l: Peekable<lexer::Lexer<'a>>,
     cur_token: Token,
@@ -59,8 +55,8 @@ pub struct Parser<'a> {
     pub errors: Vec<String>,
 }
 
-type PrefixFn = fn(&mut Parser) -> Box<ast::ASTNode>;
-type InfixFn = fn(&mut Parser, Box<ast::ASTNode>) -> Box<ast::ASTNode>;
+type PrefixFn = fn(&mut Parser) -> Result<ast::ASTNode>;
+type InfixFn = fn(&mut Parser, ast::ASTNode) -> Result<ast::ASTNode>;
 pub struct FuncParser {
     prefix_parser_fns: HashMap<TokenType, PrefixFn>,
     infix_parser_fns: HashMap<TokenType, InfixFn>,
@@ -84,202 +80,187 @@ impl Default for FuncParser {
     }
 }
 
-fn parse_identifier(this: &mut Parser) -> Box<ast::ASTNode> {
-    Box::new(ASTNode::Identifier(ast::Identifier {
+fn parse_identifier(this: &mut Parser) -> Result<ast::ASTNode> {
+    Ok(ASTNode::Identifier(ast::Identifier {
         token: this.cur_token.clone(),
         value: this.cur_token.literal.clone(),
     }))
 }
 
-fn parse_integer_literal(this: &mut Parser) -> Box<ast::ASTNode> {
+fn parse_integer_literal(this: &mut Parser) -> Result<ast::ASTNode> {
     let mut lit = ast::IntegerLiteral::new(this.cur_token.clone());
     lit.value = match this.cur_token.literal.parse::<i64>() {
         Ok(v) => v,
         Err(e) => {
-            this.errors.push(e.to_string());
-            return ASTNode_None!();
+            return Err(e.into());
         }
     };
-    Box::new(ASTNode::IntegerLiteral(lit))
+    Ok(ASTNode::IntegerLiteral(lit))
 }
-fn parse_prefix_expression(this: &mut Parser) -> Box<ast::ASTNode> {
+fn parse_prefix_expression(this: &mut Parser) -> Result<ast::ASTNode> {
     let mut expression =
         ast::PrefixExpression::new(this.cur_token.clone(), this.cur_token.literal.clone());
 
     this.next_token();
 
-    expression.right = this.parse_expression(get_pri!(PREFIX));
+    expression.right = this.parse_expression(get_pri!(PREFIX))?.into();
 
-    Box::new(ASTNode::PrefixExpression(expression))
+    Ok(ASTNode::PrefixExpression(expression))
 }
-fn parse_infix_expression(this: &mut Parser, left: Box<ast::ASTNode>) -> Box<ast::ASTNode> {
+fn parse_infix_expression(this: &mut Parser, left: ast::ASTNode) -> Result<ast::ASTNode> {
     let mut expression =
         ast::InfixExpression::new(this.cur_token.clone(), this.cur_token.literal.clone());
-    expression.left = left;
+    expression.left = Box::new(left);
     let p = this.cur_precedence();
     this.next_token();
-    expression.right = this.parse_expression(p);
+    expression.right = this.parse_expression(p)?.into();
 
-    Box::new(ASTNode::InfixExpression(expression))
+    Ok(ASTNode::InfixExpression(expression))
 }
-fn parse_boolean(this: &mut Parser) -> Box<ast::ASTNode> {
-    Box::new(ASTNode::Boolean(ast::Boolean::new(
+fn parse_boolean(this: &mut Parser) -> Result<ast::ASTNode> {
+    Ok(ASTNode::Boolean(ast::Boolean::new(
         this.cur_token.clone(),
         this.cur_token_is(True),
     )))
 }
 
-fn parse_group_expression(this: &mut Parser) -> Box<ast::ASTNode> {
+fn parse_group_expression(this: &mut Parser) -> Result<ast::ASTNode> {
     this.next_token();
-    let exp = this.parse_expression(get_pri!(LOWEST));
+    let exp = this.parse_expression(get_pri!(LOWEST))?;
     if !this.expect_peek(RPAREN) {
-        return ASTNode_None!();
+        return Err(crate::FullError::GroupErr);
     }
-    exp
+    Ok(exp)
 }
 
-fn parse_if_expression(this: &mut Parser) -> Box<ast::ASTNode> {
+fn parse_if_expression(this: &mut Parser) -> Result<ast::ASTNode> {
     let mut exp = ast::IfExpression::new(this.cur_token.clone());
 
     if !this.expect_peek(LPAREN) {
-        return ASTNode_None!();
+        return Err(crate::FullError::IfErr);
     }
 
     this.next_token();
-    exp.condition = this.parse_expression(get_pri!(LOWEST));
+    exp.condition = this.parse_expression(get_pri!(LOWEST))?.into();
 
     if !this.expect_peek(RPAREN) {
-        return ASTNode_None!();
+        return Err(crate::FullError::IfErr);
     }
     if !this.expect_peek(LBRACE) {
-        return ASTNode_None!();
+        return Err(crate::FullError::IfErr);
     }
-    exp.consequence = this.parse_block_statement();
+    exp.consequence = this.parse_block_statement()?.into();
 
     if this.peek_token_is(Else) {
         this.next_token();
 
         if !this.expect_peek(LBRACE) {
-            return ASTNode_None!();
+            return Err(crate::FullError::IfErr);
         }
-        exp.alternative = this.parse_block_statement();
+        exp.alternative = this.parse_block_statement()?.into();
     }
-    Box::new(ASTNode::IfExpression(exp))
+    Ok(ASTNode::IfExpression(exp))
 }
 
-fn parse_func_literal(this: &mut Parser) -> Box<ast::ASTNode> {
+fn parse_func_literal(this: &mut Parser) -> Result<ast::ASTNode> {
     let mut lit = ast::FuncLiteral::new(this.cur_token.clone());
     if !this.expect_peek(LPAREN) {
-        //少加一个!, 干...
-        return ASTNode_None!();
+        return Err(crate::FullError::FuncErr);
     }
     lit.params = this.parse_func_params();
 
     if !this.expect_peek(LBRACE) {
-        return ASTNode_None!();
+        return Err(crate::FullError::FuncErr);
     }
-    lit.body = this.parse_block_statement();
-    Box::new(ASTNode::FuncLiteral(lit))
+    lit.body = Box::new(this.parse_block_statement()?);
+    Ok(ASTNode::FuncLiteral(lit))
 }
 
-fn parse_call_expression(this: &mut Parser, func: Box<ast::ASTNode>) -> Box<ast::ASTNode> {
+fn parse_call_expression(this: &mut Parser, func: ast::ASTNode) -> Result<ast::ASTNode> {
     let mut call_expression = ast::CallExpression::new(this.cur_token.clone());
-    call_expression.func = func;
-    call_expression.args = this.parse_expression_list(RPAREN);
-    Box::new(ASTNode::CallExpression(call_expression))
+    call_expression.func = Box::new(func);
+    call_expression.args = this.parse_expression_list(RPAREN)?;
+    Ok(ASTNode::CallExpression(call_expression))
 }
 
-fn parse_string_literal(this: &mut Parser) -> Box<ast::ASTNode> {
-    Box::new(ast::ASTNode::StringLiteral(
+fn parse_string_literal(this: &mut Parser) -> Result<ast::ASTNode> {
+    Ok(ast::ASTNode::StringLiteral(
         this.cur_token.clone(),
         this.cur_token.literal.clone(),
     ))
 }
 
-fn parse_array_literal(this: &mut Parser) -> Box<ast::ASTNode> {
-    Box::new(ast::ASTNode::ArrayLiteral(
+fn parse_array_literal(this: &mut Parser) -> Result<ast::ASTNode> {
+    Ok(ast::ASTNode::ArrayLiteral(
         this.cur_token.clone(),
-        this.parse_expression_list(RBRACKET),
+        this.parse_expression_list(RBRACKET)?,
     ))
 }
 
-fn parse_index_expression(this: &mut Parser, left: Box<ast::ASTNode>) -> Box<ast::ASTNode> {
+fn parse_index_expression(this: &mut Parser, left: ast::ASTNode) -> Result<ast::ASTNode> {
     let cur_token = this.cur_token.clone();
 
     this.next_token();
-    let index = this.parse_expression(get_pri!(LOWEST));
+    let index = this.parse_expression(get_pri!(LOWEST))?;
 
     if !this.expect_peek(RBRACKET) {
-        return ASTNode_None!();
+        return Err(crate::FullError::IndexErr);
     }
-    Box::new(ast::ASTNode::IndexLiteral(cur_token, left, index))
+    Ok(ast::ASTNode::IndexLiteral(
+        cur_token,
+        Box::new(left),
+        Box::new(index),
+    ))
 }
 
-fn parse_hash_helper(
-    this: &mut Parser,
-) -> Option<Vec<(std::boxed::Box<ast::ASTNode>, std::boxed::Box<ast::ASTNode>)>> {
+fn parse_hash_helper(this: &mut Parser) -> Result<Vec<(Box<ast::ASTNode>, Box<ast::ASTNode>)>> {
     let mut hash = vec![];
     while !this.peek_token_is(RBRACE) {
         this.next_token();
-        let key = this.parse_expression(get_pri!(LOWEST));
+        let key = this.parse_expression(get_pri!(LOWEST))?;
 
         if !this.expect_peek(COLON) {
-            return None;
+            return Err(crate::FullError::HashErr);
         }
 
         this.next_token();
-        let value = this.parse_expression(get_pri!(LOWEST));
+        let value = this.parse_expression(get_pri!(LOWEST))?;
 
-        hash.push((key, value));
+        hash.push((Box::new(key), Box::new(value)));
 
         if !this.expect_peek(COMMA) && !this.peek_token_is(RBRACE) {
-            return None;
+            return Err(crate::FullError::HashErr);
         }
     }
     if !this.expect_peek(RBRACE) {
-        return None;
+        return Err(crate::FullError::HashErr);
     }
-    Some(hash)
+    Ok(hash)
 }
 
-fn parse_hash_literal(this: &mut Parser) -> Box<ast::ASTNode> {
+fn parse_hash_literal(this: &mut Parser) -> Result<ast::ASTNode> {
     let cur_token = this.cur_token.clone();
-
-    if let Some(hash) = parse_hash_helper(this) {
-        Box::new(ast::ASTNode::HashLiteral(cur_token, hash))
-    } else {
-        ASTNode_None!()
-    }
+    let hash = parse_hash_helper(this)?;
+    Ok(ast::ASTNode::HashLiteral(cur_token, hash))
 }
 
-fn parse_assign_expression(this: &mut Parser, left: Box<ast::ASTNode>) -> Box<ast::ASTNode> {
+fn parse_assign_expression(this: &mut Parser, left: ast::ASTNode) -> Result<ast::ASTNode> {
     let mut letstmt = ast::LetStatement::new();
     letstmt.token = this.cur_token.clone();
 
-    match left.as_ref() {
-        ast::ASTNode::Identifier(ref value) => letstmt.name = value.clone(),
-        _ => return ASTNode_None!(),
+    match left {
+        ast::ASTNode::Identifier(value) => letstmt.name = value,
+        _ => return Err(crate::FullError::AssignErr),
     }
 
     this.next_token();
-    letstmt.value = this.parse_expression(get_pri!(LOWEST));
+    letstmt.value = Box::new(this.parse_expression(get_pri!(LOWEST))?);
 
     if !this.expect_peek(SEMICOLON) {
-        return ASTNode_None!();
+        return Err(crate::FullError::AssignErr);
     }
 
-    Box::new(ast::ASTNode::LetStatement(letstmt))
-}
-
-fn parse_class_literal(this: &mut Parser) -> Box<ast::ASTNode> {
-    let cur_token = this.cur_token.clone();
-    this.next_token();
-
-    if let Some(hash) = parse_hash_helper(this) {
-        Box::new(ast::ASTNode::HashLiteral(cur_token, hash))
-    } else {
-        ASTNode_None!()
-    }
+    Ok(ast::ASTNode::LetStatement(letstmt))
 }
 
 impl FuncParser {
@@ -323,90 +304,87 @@ impl<'a> Parser<'a> {
     }
 
     //入口函数
-    pub fn parse_program(&mut self) -> ast::ASTNode {
+    pub fn parse_program(&mut self) -> Result<ast::ASTNode> {
         let mut program = ast::Program::new();
 
         while let Some(token) = self.next() {
-            if let Some(stmt) = self.parse_statement(token) {
-                program.statements.push(stmt);
-            }
+            let stmt = self.parse_statement(token)?;
+
+            program.statements.push(Box::new(stmt));
         }
 
-        ast::ASTNode::Program(program)
+        Ok(ast::ASTNode::Program(program))
     }
 
-    fn parse_statement(&mut self, cur_token: Token) -> Option<Box<ast::ASTNode>> {
-        Some(match cur_token.ty {
+    fn parse_statement(&mut self, cur_token: Token) -> Result<ast::ASTNode> {
+        match cur_token.ty {
             Let => {
-                if let Some(letstmt) = self.parse_letstatement(cur_token) {
-                    Box::new(ASTNode::LetStatement(letstmt))
-                } else {
-                    ASTNode_None!()
-                }
+                let letstmt = self.parse_letstatement(cur_token)?;
+
+                Ok(ASTNode::LetStatement(letstmt))
             }
             Return => {
-                if let Some(stmt) = self.parse_returnstatement(cur_token) {
-                    Box::new(ASTNode::ReturnStatement(stmt))
-                } else {
-                    ASTNode_None!()
-                }
+                let ret = self.parse_returnstatement(cur_token)?;
+                Ok(ASTNode::ReturnStatement(ret))
             }
             _ => self.parse_expression_statement(),
-        })
+        }
     }
-    fn parse_expression_statement(&mut self) -> Box<ast::ASTNode> {
+    fn parse_expression_statement(&mut self) -> Result<ast::ASTNode> {
         let mut stmt = ast::ExpressionStatement::new(self.cur_token.clone());
 
-        stmt.expression = self.parse_expression(get_pri!(LOWEST));
+        let expr = self.parse_expression(get_pri!(LOWEST))?;
+        stmt.expression = Box::new(expr);
 
         if self.peek_token_is(SEMICOLON) {
             self.next_token();
         }
-        Box::new(ast::ASTNode::ExpressionStatement(stmt))
+        Ok(ast::ASTNode::ExpressionStatement(stmt))
     }
 
-    fn parse_expression(&mut self, precedence: u8) -> Box<ast::ASTNode> {
+    fn parse_expression(&mut self, precedence: u8) -> Result<ast::ASTNode> {
         let cur_token = self.next().unwrap();
         if let Some(prefix) = FUNCPARSER.prefix_parser_fns.get(&cur_token.ty) {
-            let mut left_expr = prefix(self);
+            let mut left_expr = prefix(self)?;
             while let Some(peek) = self.peek_token() {
                 let p = peek.ty != SEMICOLON && precedence < get_precedence(peek.ty);
                 if p {
                     if let Some(infix) = FUNCPARSER.infix_parser_fns.get(&peek.ty) {
                         self.next_token();
-                        left_expr = infix(self, left_expr);
+                        left_expr = infix(self, left_expr)?;
                     } else {
-                        return left_expr;
+                        return Ok(left_expr);
                     }
                 }
             }
-            return left_expr;
+            return Ok(left_expr);
         } else {
-            self.no_prefix_parse_error(cur_token.ty);
-            return ASTNode_None!();
+            return Err(crate::FullError::ExpressionErr);
         }
     }
 
-    fn parse_expression_list(&mut self, end: TokenType) -> Vec<Box<ast::ASTNode>> {
+    fn parse_expression_list(&mut self, end: TokenType) -> Result<Vec<Box<ast::ASTNode>>> {
         let mut list = vec![];
         if self.peek_token_is(end) {
             self.next_token();
-            return list;
+            return Ok(list);
         }
 
         self.next_token();
-        list.push(self.parse_expression(get_pri!(LOWEST)));
+        let expr = self.parse_expression(get_pri!(LOWEST))?;
+        list.push(Box::new(expr));
 
         while self.peek_token_is(COMMA) {
             self.next_token();
             self.next_token();
-            list.push(self.parse_expression(get_pri!(LOWEST)));
+            let expr = self.parse_expression(get_pri!(LOWEST))?;
+            list.push(Box::new(expr));
         }
 
         if !self.expect_peek(end) {
-            return vec![];
+            return Err(crate::FullError::ExpressionErr);
         }
-        list
+        Ok(list)
     }
     // fn parse_call_args(&mut self)->Vec<Box<ast::ASTNode>>{
     //     let mut args = vec![];
@@ -456,26 +434,26 @@ impl<'a> Parser<'a> {
     }
 
     // { }
-    fn parse_block_statement(&mut self) -> Box<ast::ASTNode> {
+    fn parse_block_statement(&mut self) -> Result<ast::ASTNode> {
         let mut block = ast::BlockStatement::new(self.cur_token.clone());
 
         while let Some(token) = self.next_token() {
             if !token.is_ty(RBRACE) {
                 break;
             }
-            if let Some(value) = self.parse_statement(token) {
-                block.statements.push(value);
-            }
+            let val = self.parse_statement(token)?;
+
+            block.statements.push(Box::new(val));
         }
 
-        Box::new(ast::ASTNode::BlockStatement(block))
+        Ok(ast::ASTNode::BlockStatement(block))
     }
 
     // let与return
-    fn parse_letstatement(&mut self, cur_token: Token) -> Option<ast::LetStatement> {
+    fn parse_letstatement(&mut self, cur_token: Token) -> Result<ast::LetStatement> {
         let mut stmt = ast::LetStatement::new();
         if !self.expect_peek(IDENT) {
-            return None;
+            return Err(crate::FullError::LetErr);
         }
         let val = cur_token.literal.clone();
         stmt.name = ast::Identifier {
@@ -484,27 +462,27 @@ impl<'a> Parser<'a> {
         };
 
         if !self.expect_peek(ASSIGN) {
-            return None;
+            return Err(crate::FullError::AssignErr);
         }
         self.next_token();
 
-        stmt.value = self.parse_expression(get_pri!(LOWEST));
+        stmt.value = Box::new(self.parse_expression(get_pri!(LOWEST))?);
 
         if self.peek_token_is(SEMICOLON) {
             self.next_token();
         }
-        Some(stmt)
+        Ok(stmt)
     }
 
-    fn parse_returnstatement(&mut self, cur_token: Token) -> Option<ast::ReturnStatement> {
+    fn parse_returnstatement(&mut self, cur_token: Token) -> Result<ast::ReturnStatement> {
         let mut restmt = ast::ReturnStatement::new(cur_token);
 
-        restmt.return_value = self.parse_expression(get_pri!(LOWEST));
+        restmt.return_value = Box::new(self.parse_expression(get_pri!(LOWEST))?);
 
         if self.peek_token_is(SEMICOLON) {
             self.next_token();
         }
-        Some(restmt)
+        Ok(restmt)
     }
 
     //以下为辅助函数
@@ -568,7 +546,7 @@ mod parser {
         let input = "let a = 10";
         let l = Lexer::new(input);
         let mut p = Parser::new(l);
-        let ast = p.parse_program();
+        let ast = p.parse_program().unwrap();
 
         let mut letstat = LetStatement::new();
         let mut id = Identifier::default();
