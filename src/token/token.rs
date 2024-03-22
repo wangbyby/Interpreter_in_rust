@@ -154,6 +154,10 @@ impl Token {
             literal: ch.into(),
         }
     }
+
+    pub fn is_ty(&self, ty: TokenType) -> bool{
+        self.ty == ty
+    }
 }
 
 impl Default for Token {
