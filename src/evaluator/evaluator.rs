@@ -27,10 +27,10 @@ const TRUE: object::TheObject = object::TheObject::Boolean(true);
 const FALSE:  object::TheObject = object::TheObject::Boolean(false);
 
 
-pub fn eval(node:& Box<ast::ASTNode>, mut env:&mut  Environment) ->Box<object::TheObject> {
+pub fn eval(node:&ast::ASTNode, mut env:&mut  Environment) ->Box<object::TheObject> {
         use crate::ast::ast::ASTNode::*;
         
-        match  node.clone().as_ref() { //关键的一行代码
+        match  node { //关键的一行代码
             Program(ref value) => return eval_program(value, &mut env)  ,
             ExpressionStatement(ref value) => return eval(&value.expression,&mut env),
             IntegerLiteral(ref value) =>    return new_box!(object::TheObject::Integer(value.value)),

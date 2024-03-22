@@ -21,7 +21,7 @@ pub fn start() {
 
         let mut lexer = Lexer::new(&scanned);
         let mut p = parser::Parser::new(lexer);
-        let  program = Box::new(p.parse_program());
+        let  program =  p.parse_program().unwrap();
 
         if p.errors.len() != 0 {
             println!("get Errors: {:?}", p.error());
