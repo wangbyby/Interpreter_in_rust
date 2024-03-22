@@ -71,7 +71,7 @@ impl Program {
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct LetStatement {
     pub token: token::Token,
-    pub name: Box<Identifier>,
+    pub name: Identifier,
     pub value: Box<ASTNode>,
 }
 
@@ -79,7 +79,7 @@ impl LetStatement {
     pub fn new() -> LetStatement {
         LetStatement {
             token: token::Token::default(),
-            name: Box::new(Identifier::default()),
+            name: Identifier::default(),
             value: Box::new(ASTNode::None),
         }
     }
