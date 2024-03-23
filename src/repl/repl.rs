@@ -22,19 +22,9 @@ pub fn start() {
         let mut lexer = Lexer::new(&scanned);
         let mut p = parser::Parser::new(lexer);
         let  program =  p.parse_program().unwrap();
-
-        if p.errors.len() != 0 {
-            println!("get Errors: {:?}", p.error());
-            continue;
-        }
         
         // println!("{:#?}",program); 
         let evaled = evaluator::eval(&program,&mut env);
         println!("{}",evaled.inspect()); 
-            
-        
-        
-    
-        
     }
 }

@@ -1,14 +1,6 @@
 use crate::token::token::{self, Token};
 
-// use std::any::Any;
-//干...
-// pub trait Node: std::fmt::Debug {
-//     fn token_literal(&self) -> String;
-//     fn node_to_string(&self)->String;
-//     fn as_any(&self) -> &dyn Any;
-
-//     // fn as_super(&self) ->&dyn Node;//还是不要加上为好
-// }
+type TokenAST = Option<token::Token>;
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum ASTNode {
@@ -25,10 +17,10 @@ pub enum ASTNode {
     IntegerLiteral(IntegerLiteral),
     PrefixExpression(PrefixExpression),
     ReturnStatement(ReturnStatement),
-    StringLiteral(token::Token, String),
-    ArrayLiteral(token::Token, Vec<Box<ASTNode>>),
-    IndexLiteral(token::Token, Box<ASTNode>, Box<ASTNode>), //token, left, index
-    HashLiteral(token::Token, Vec<(Box<ASTNode>, Box<ASTNode>)>),
+    StringLiteral(TokenAST, String),
+    ArrayLiteral(TokenAST, Vec<Box<ASTNode>>),
+    IndexLiteral(TokenAST, Box<ASTNode>, Box<ASTNode>), //token, left, index
+    HashLiteral(TokenAST, Vec<(Box<ASTNode>, Box<ASTNode>)>),
     None,
 }
 
@@ -64,7 +56,7 @@ impl Program {
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct LetStatement {
-    pub token: token::Token,
+    pub token: TokenAST,
     pub name: Identifier,
     pub value: Box<ASTNode>,
 }
@@ -72,7 +64,7 @@ pub struct LetStatement {
 impl LetStatement {
     pub fn new() -> LetStatement {
         LetStatement {
-            token: token::Token::default(),
+            token: None,
             name: Identifier::default(),
             value: Box::new(ASTNode::None),
         }
@@ -84,18 +76,19 @@ impl LetStatement {
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct Identifier {
-    pub token: token::Token,
+    pub token: TokenAST,
     pub value: String,
 }
 
 impl Identifier {
     pub fn new(token: token::Token, value: String) -> Self {
-        Self { token, value }
+        Self { 
+            token: Some(token), value }
     }
 
     pub fn default() -> Self {
         Identifier {
-            token: token::Token::default(),
+            token: None,
             value: String::default(),
         }
     }
@@ -103,14 +96,14 @@ impl Identifier {
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct ReturnStatement {
-    pub token: token::Token,
+    pub token: TokenAST,
     pub return_value: Box<ASTNode>,
 }
 
 impl ReturnStatement {
     pub fn new(token: token::Token) -> Self {
         ReturnStatement {
-            token: token,
+            token: Some(token),
             return_value: Box::new(ASTNode::None),
         }
     }

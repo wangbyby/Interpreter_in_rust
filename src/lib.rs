@@ -33,6 +33,10 @@ pub enum FullError {
     RetErr,
     #[error("parse expr error")]
     ExpressionErr,
+    #[error("Unexpected EOF")]
+    EOF,
+    #[error("Miss ;")]
+    MissSem,
     #[error("unknown data store error")]
     Unknown,
 }
