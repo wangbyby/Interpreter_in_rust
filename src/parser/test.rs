@@ -6,16 +6,6 @@ use std::any::Any;
 use super::parser;
 
 
-fn check_parse_error(p:& parser::Parser){
-    let err = p.error();
-    if err.len() == 0 {
-        return;
-    }
-    
-    panic!("check parse has error(s), {:#?}",err);
-}
-
-
 
 #[test]
 fn test_let_statment(){
@@ -28,11 +18,9 @@ fn test_let_statment(){
     for (i,(input, expected)) in tests.iter().enumerate() {
         let l = lexer::Lexer::new(*input);
         let mut p = parser::Parser::new(l);
-        let program = p.parse_program();
+        let program = p.parse_program().unwrap();
 
-        check_parse_error(&p);
-
-        match program.as_ref() {
+        match program {
             ast::ASTNode::Program(program) =>{
                 match program.statements[0].as_ref() {
                     ast::ASTNode::LetStatement(ref stmt) => {
@@ -53,10 +41,9 @@ fn test_function(){
     let input = "fn(x,y,z){z+y+x+2;}; ";
     let l = lexer::Lexer::new(input);
     let mut p = parser::Parser::new(l);
-    let program = p.parse_program();
+    let program = p.parse_program().unwrap();
 
-    check_parse_error(&p);
-    match program.as_ref() {
+    match program {
         ast::ASTNode::Program(program) =>{
             match program.statements[0].as_ref() {
                 ast::ASTNode::ExpressionStatement(ref stmt) => {

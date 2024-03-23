@@ -96,7 +96,6 @@ impl<'a> Lexer<'a> {
 
     fn read_<F: Fn(char) -> bool>(&mut self, first_char: Option<char>, ok_fn: F) -> String {
         let mut id = String::with_capacity(8);
-        println!("here char={:?}", first_char);
         if let Some(ch) = first_char {
             id.write_char(ch).unwrap();
         }
@@ -107,7 +106,6 @@ impl<'a> Lexer<'a> {
             } else {
                 break;
             }
-            println!("here {}", id);
         }
         id
     }
@@ -149,12 +147,12 @@ fn is_var_name(ch: char) -> bool {
 
 #[cfg(test)]
 mod test_lexer {
-    use crate::token::token::{Token, TokenType};
+    use crate::{mylexer::lexer, token::token::{Token, TokenType}};
 
     use super::Lexer;
 
     #[test]
-    fn test() {
+    fn test_next() {
         use TokenType::*;
         let s = "let a = 10";
         let mut lexer = Lexer::new(s);
@@ -171,5 +169,30 @@ mod test_lexer {
         let mut a = Token::new(INT, "10");
 
         assert_eq!(Some(a), lexer.next_token());
+
+        assert_eq!(None, lexer.next_token());
+    }
+
+    #[test]
+    fn test_peek() {
+        use TokenType::*;
+        let s = "let a = 10;";
+        let mut lexer = Lexer::new(s);
+        let mut lexer = lexer.peekable();
+
+        let  a = Token::new(Let, "let");
+        assert_eq!(Some(a), lexer.next());
+
+        let  a = Token::new(IDENT, 'a');
+        assert_eq!(Some(a), lexer.next());
+
+        let  a = Token::new(ASSIGN, '=');
+        assert_eq!(Some(a), lexer.next());
+
+        let  a = Token::new(INT, "10");
+
+        assert_eq!(Some(a), lexer.next());
+        lexer.next();
+        assert_eq!(None, lexer.peek());
     }
 }

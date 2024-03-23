@@ -42,9 +42,9 @@ pub fn eval(node:&ast::ASTNode, mut env:&mut  Environment) ->Box<object::TheObje
             Identifier(ref value) => return eval_identifier(value,&env),
             LetStatement(ref value) => {
                 let val = eval(&value.value, &mut env);
-                if val.as_ref().is_error(){
+                if val.is_error(){
                     return val;
-                }        
+                } 
                 env.store.insert(value.name.value.clone(), val.clone());
                 return eval_identifier(&value.name,&env);
             },
