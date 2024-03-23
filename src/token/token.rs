@@ -155,7 +155,7 @@ impl Token {
         }
     }
 
-    pub fn is_ty(&self, ty: TokenType) -> bool{
+    pub fn is_ty(&self, ty: TokenType) -> bool {
         self.ty == ty
     }
 }
