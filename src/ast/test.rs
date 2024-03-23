@@ -15,11 +15,11 @@
 //             Some(Box::new(
 //                 ast::LetStatement{
 //                     token: token::Token::new_with_string(token::LET, "let"),
-//                     name: ast::Identifier{ 
+//                     name: ast::Identifier{
 //                         token: token::Token::new_with_string(token::IDENT, "myVar"),
 //                         value: "myVar".to_string(),
 //                     },
-//                     value: Some(Box::new(ast::Identifier{ 
+//                     value: Some(Box::new(ast::Identifier{
 //                         token: token::Token::new_with_string(token::IDENT, "anotherVar"),
 //                         value: "anotherVar".to_string(),
 //                     })),

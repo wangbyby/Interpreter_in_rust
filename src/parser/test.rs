@@ -5,66 +5,65 @@ use std::any::Any;
 // use crate::ast::ast::Node;
 use super::parser;
 
-
-
 #[test]
-fn test_let_statment(){
+fn test_let_statment() {
     let tests = vec![
-        ("let x =10;","x"),
-        ("let y =10;","y"),
-        ("let foobar =10;","foobar"),
+        ("let x =10;", "x"),
+        ("let y =10;", "y"),
+        ("let foobar =10;", "foobar"),
     ];
 
-    for (i,(input, expected)) in tests.iter().enumerate() {
+    for (i, (input, expected)) in tests.iter().enumerate() {
         let l = lexer::Lexer::new(*input);
         let mut p = parser::Parser::new(l);
         let program = p.parse_program().unwrap();
 
         match program {
-            ast::ASTNode::Program(program) =>{
-                match program.statements[0].as_ref() {
-                    ast::ASTNode::LetStatement(ref stmt) => {
-                        assert_eq!(stmt.name.value,*expected.to_string());
-                    }
-                    _=> panic!("i want letStatement, the program is {:#?} \n ",program.statements),
+            ast::ASTNode::Program(program) => match program.statements[0].as_ref() {
+                ast::ASTNode::LetStatement(ref stmt) => {
+                    assert_eq!(stmt.name.value, *expected.to_string());
                 }
-            }
-            _=> panic!("parse program error: {:?}",program),
-            
+                _ => panic!(
+                    "i want letStatement, the program is {:#?} \n ",
+                    program.statements
+                ),
+            },
+            _ => panic!("parse program error: {:?}", program),
         }
     }
 }
 
-
 #[test]
-fn test_function(){
+fn test_function() {
     let input = "fn(x,y,z){z+y+x+2;}; ";
     let l = lexer::Lexer::new(input);
     let mut p = parser::Parser::new(l);
     let program = p.parse_program().unwrap();
 
     match program {
-        ast::ASTNode::Program(program) =>{
+        ast::ASTNode::Program(program) => {
             match program.statements[0].as_ref() {
                 ast::ASTNode::ExpressionStatement(ref stmt) => {
                     match stmt.expression.as_ref() {
-                        ast::ASTNode::FuncLiteral(ref func) =>{
+                        ast::ASTNode::FuncLiteral(ref func) => {
                             // panic!("func = {:#?}", func);
-                        },
-                        _=> panic!("please give me funcliteral, but i recive {:?}",stmt),
+                        }
+                        _ => panic!("please give me funcliteral, but i recive {:?}", stmt),
                     }
                 }
-                _=> panic!("i want ExpressionStatement, the program is {:#?} \n ",program.statements),
+                _ => panic!(
+                    "i want ExpressionStatement, the program is {:#?} \n ",
+                    program.statements
+                ),
             }
         }
-        _=> panic!("parse program error: {:#?}",program),
-        
+        _ => panic!("parse program error: {:#?}", program),
     }
     // panic!(" {:#?}", program);
 }
 
 // #[test]
-// pub fn test_return_stmt(){  
+// pub fn test_return_stmt(){
 //     let input = "return 5;
 //         return 10;
 //         return 99999;
@@ -72,7 +71,7 @@ fn test_function(){
 //     let l = lexer::Lexer::new(input);
 //     let mut p = parser::Parser::new(l);
 //     let program = p.parse_program().unwrap();
-    
+
 //     check_parse_error(&p);
 
 //     assert_eq!(3, program.statements.len());
@@ -87,18 +86,13 @@ fn test_function(){
 //     }
 // }
 
-
-
-
-
-
 // #[test]
 // fn test_id_expr() {
 //     let input = "foobar;";
 //     let l = lexer::Lexer::new(input);
 //     let mut p = parser::Parser::new(l);
 //     let program = p.parse_program().unwrap();
-    
+
 //     check_parse_error(&p);
 //     if program.statements.len() != 1 {
 //         panic!("program = {:?}",program.statements);
@@ -119,7 +113,7 @@ fn test_function(){
 //                         },
 //                         _=>panic!("expression is none"),
 //                     }
-                    
+
 //                 },
 //                 _=>panic!("not ast::ExpressionStatement"),
 //             }
@@ -128,14 +122,13 @@ fn test_function(){
 //     }
 // }
 
-
 // #[test]
 // fn test_int_literal_expression() {
 //     let input = "5;";
 //     let l = lexer::Lexer::new(input);
 //     let mut p = parser::Parser::new(l);
 //     let program = p.parse_program().unwrap();
-    
+
 //     check_parse_error(&p);
 //     if program.statements.len() != 1 {
 //         panic!("program = {:?}",program.statements);
@@ -157,7 +150,7 @@ fn test_function(){
 //                         },
 //                         _=>panic!("expression is none"),
 //                     }
-                    
+
 //                 },
 //                 _=>panic!("not ast::ExpressionStatement"),
 //             }
@@ -175,7 +168,7 @@ fn test_function(){
 // impl TestPrefix{
 //     fn new<S: Into<String>>(input: S,operator:S,intValue:i64)->Self{
 //         TestPrefix{
-//             input: input.into(), 
+//             input: input.into(),
 //             operator:operator.into(),
 //             intValue,
 //         }
@@ -186,12 +179,12 @@ fn test_function(){
 //     let pretests = vec![
 //         TestPrefix::new("!5", "!", 5),
 //         TestPrefix::new("-15", "-", 15),
-//     ]; 
+//     ];
 //     for i in pretests{
 //         let l = lexer::Lexer::new(i.input);
 //         let mut p = parser::Parser::new(l);
 //         let program = p.parse_program().unwrap();
-        
+
 //         check_parse_error(&p);
 //         if program.statements.len() != 1 {
 //             panic!("program = {:?}",program.statements);
@@ -204,7 +197,7 @@ fn test_function(){
 //                             Some(ls)=> {
 //                                 match ls.as_any().downcast_ref::<ast::PrefixExpression>(){
 //                                     Some(b)=>{
-                                
+
 //                                         assert_eq!(b.operator, i.operator);
 //                                         test_int_literal(b.right.as_ref().unwrap(), i.intValue);
 //                                     },
@@ -225,14 +218,13 @@ fn test_function(){
 // fn test_int_literal(il:& Box<dyn ast::Node>, value:i64) {
 //     match il.as_any().downcast_ref::<ast::IntegerLiteral>(){
 //         Some(b)=>{
-    
+
 //             assert_eq!(b.value, value);
-//             assert_eq!(b.token_literal(), format!("{}",value)); 
+//             assert_eq!(b.token_literal(), format!("{}",value));
 //         },
 //         _=>panic!("not ast::IntegerLiteral, has {:#?}",il),
 //     }
 // }
-
 
 // #[derive(Debug)]
 // struct TestInfix{
@@ -244,7 +236,7 @@ fn test_function(){
 // impl TestInfix{
 //     fn new<S: Into<String>>(input: S,operator:S,lv:i64,rv:i64)->Self{
 //         TestInfix{
-//             input: input.into(), 
+//             input: input.into(),
 //             operator:operator.into(),
 //             left_val:lv,
 //             right_val:rv,
@@ -261,8 +253,7 @@ fn test_function(){
 //         TestInfix::new("5<5;", "<", 5, 5),
 //         TestInfix::new("5 + 5;", "+", 5, 5),
 //         TestInfix::new("5-5;", "-", 5, 5),
-        
-        
+
 //         TestInfix::new("5==5;", "==", 5, 5),
 //         TestInfix::new("5!=5;", "!=", 5, 5),
 //     ];
@@ -270,12 +261,12 @@ fn test_function(){
 //         let l = lexer::Lexer::new(i.input);
 //         let mut p = parser::Parser::new(l);
 //         let program = p.parse_program().unwrap();
-        
+
 //         check_parse_error(&p);
 //         if program.statements.len() != 1 {
 //             panic!("program = {:#?}",program.statements);
 //         }
-    
+
 //         match &program.statements[0] {
 //             Some(stmt)=>{
 //                 match stmt.as_any().downcast_ref::<ast::ExpressionStatement>(){
@@ -284,7 +275,7 @@ fn test_function(){
 //                             Some(ls)=> {
 //                                 match ls.as_any().downcast_ref::<ast::InfixExpression>(){
 //                                     Some(b)=>{
-                                
+
 //                                         assert_eq!(b.operator, i.operator);
 //                                         test_int_literal(b.left.as_ref().unwrap(), i.left_val);
 //                                     },
@@ -302,9 +293,8 @@ fn test_function(){
 //     }
 // }
 
-
 // #[test]
-// fn test_operator_precedence() { 
+// fn test_operator_precedence() {
 //     let tests = vec![
 //         ("true","true"),
 //         ("false","false"),
@@ -327,9 +317,9 @@ fn test_function(){
 //         let l = lexer::Lexer::new(a);
 //         let mut p = parser::Parser::new(l);
 //         let program = p.parse_program().unwrap();
-        
+
 //         check_parse_error(&p);
-    
+
 //     }
 // }
 
@@ -343,7 +333,7 @@ fn test_function(){
 // //         let l = lexer::Lexer::new(a);
 // //         let mut p = parser::Parser::new(l);
 // //         let program = p.parse_program().unwrap();
-        
+
 // //         check_parse_error(&p);
 // //         let actual = program.node_to_string();
 // //         panic!("{}", actual);
@@ -364,7 +354,7 @@ fn test_function(){
 //     if program.statements.len() != 1 {
 //         panic!("program = {:?}",program.statements);
 //     }
-    
+
 //     match &program.statements[0] {
 //         Some(stmt)=>{
 //             match stmt.as_any().downcast_ref::<ast::ExpressionStatement>(){
@@ -374,7 +364,7 @@ fn test_function(){
 //                             match ls.as_any().downcast_ref::<ast::IfExpression>(){
 //                                 Some(b)=>{
 //                                     // panic!("{:#?}",b);
-                                    
+
 //                                 },
 //                                 _=>panic!("not letstmt, has {:#?}",program.statements),
 //                             }
@@ -390,7 +380,7 @@ fn test_function(){
 // }
 
 // // fn test_infix_expression<T, S:Into<String>>(exp: Option<Box<dyn ast::Expression>>, left: T,  operator: S, right: T) {
-    
+
 // //     if let Some(exp) = exp {
 // //         match exp.as_any().downcast_ref::<ast::InfixExpression>(){
 // //             Some(infix_expr)=>{
@@ -399,6 +389,5 @@ fn test_function(){
 // //             _=>panic!("not ast::IfExpression"),
 // //         }
 // //     }
-    
-// // }
 
+// // }

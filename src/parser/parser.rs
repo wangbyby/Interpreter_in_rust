@@ -356,9 +356,9 @@ impl<'a> Parser<'a> {
         let first_peek = self.peek_token().ok_or(FullError::EOF)?;
         if let Some(prefix) = FUNCPARSER.prefix_parser_fns.get(&first_peek.ty) {
             let mut left_expr = prefix(self)?;
-            println!("not end {:?}",self.l.peek());
+            println!("not end {:?}", self.l.peek());
             while let Some(peek) = self.peek_token() {
-                if peek.ty == SEMICOLON{
+                if peek.ty == SEMICOLON {
                     break;
                 }
                 let p = peek.ty != SEMICOLON && precedence < get_precedence(peek.ty);

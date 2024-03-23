@@ -82,8 +82,10 @@ pub struct Identifier {
 
 impl Identifier {
     pub fn new(token: token::Token, value: String) -> Self {
-        Self { 
-            token: Some(token), value }
+        Self {
+            token: Some(token),
+            value,
+        }
     }
 
     pub fn default() -> Self {

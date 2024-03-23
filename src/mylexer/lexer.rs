@@ -147,7 +147,10 @@ fn is_var_name(ch: char) -> bool {
 
 #[cfg(test)]
 mod test_lexer {
-    use crate::{mylexer::lexer, token::token::{Token, TokenType}};
+    use crate::{
+        mylexer::lexer,
+        token::token::{Token, TokenType},
+    };
 
     use super::Lexer;
 
@@ -180,16 +183,16 @@ mod test_lexer {
         let mut lexer = Lexer::new(s);
         let mut lexer = lexer.peekable();
 
-        let  a = Token::new(Let, "let");
+        let a = Token::new(Let, "let");
         assert_eq!(Some(a), lexer.next());
 
-        let  a = Token::new(IDENT, 'a');
+        let a = Token::new(IDENT, 'a');
         assert_eq!(Some(a), lexer.next());
 
-        let  a = Token::new(ASSIGN, '=');
+        let a = Token::new(ASSIGN, '=');
         assert_eq!(Some(a), lexer.next());
 
-        let  a = Token::new(INT, "10");
+        let a = Token::new(INT, "10");
 
         assert_eq!(Some(a), lexer.next());
         lexer.next();

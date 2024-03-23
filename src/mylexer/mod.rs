@@ -1,12 +1,9 @@
-
-
 pub mod lexer;
 pub use lexer::Lexer;
 
-
 // use crate::token::token;
 // struct Tests{
-//     expectedType : token::TokenType, 
+//     expectedType : token::TokenType,
 //     expectedLiteral : &'static str,
 // }
 
@@ -52,7 +49,7 @@ pub use lexer::Lexer;
 //         Tests {expectedType: token::FUNCTION,expectedLiteral: "fn"},
 //         Tests {expectedType: token::LPAREN,expectedLiteral: "("},
 //         Tests::new(token::IDENT, "x"),
-//         Tests::new(token::COMMA, ","), 
+//         Tests::new(token::COMMA, ","),
 //         Tests::new(token::IDENT, "y"),
 //         Tests::new(token::RPAREN,")"),
 //         Tests::new(token::LBRACE, "{"),
